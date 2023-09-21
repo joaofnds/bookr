@@ -1,0 +1,29 @@
+env: development
+http:
+  port: 3000
+  limiter:
+    requests: 1000
+    expiration: 1s
+metrics:
+  addr: localhost:9091
+tracing:
+  addr: localhost:4317
+  secure: false
+  timeout: 1s
+  sample_rate: 1.0
+feature_flags:
+  polling_interval: 15s
+  flags:
+    cool-feature:
+      variations:
+        on: "on"
+        off: "off"
+      defaultRule:
+        percentage:
+          on: 50
+          off: 50
+postgres:
+  uri: postgres://postgres:postgres@localhost:5432/bookr?sslmode=disable
+
+redis:
+  addr: localhost:6379
