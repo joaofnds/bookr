@@ -14,6 +14,7 @@ import (
 	"app/adapter/redis"
 	"app/adapter/tracing"
 	"app/adapter/validation"
+	calendar "app/calendar/module"
 	"app/config"
 	"app/kv"
 	resource "app/resource/module"
@@ -43,5 +44,6 @@ func main() {
 		user.Module,
 		kv.Module,
 		resource.Module,
+		calendar.Module,
 	).Run()
 }

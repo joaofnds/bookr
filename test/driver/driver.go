@@ -19,6 +19,7 @@ type Driver struct {
 	URL      string
 	User     *UserDriver
 	Resource *ResourceDriver
+	Calendar *CalendarDriver
 }
 
 func NewDriver(url string) *Driver {
@@ -26,6 +27,7 @@ func NewDriver(url string) *Driver {
 		URL:      url,
 		User:     NewUserDriver(url),
 		Resource: NewResourceDriver(url),
+		Calendar: NewCalendarDriver(url),
 	}
 }
 
