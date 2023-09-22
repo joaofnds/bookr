@@ -70,17 +70,15 @@ func (controller *Controller) Create(ctx *fiber.Ctx) error {
 
 func (controller *Controller) FindByID(ctx *fiber.Ctx) error {
 	res, err := controller.service.FindByID(ctx.UserContext(), ctx.Params("id"))
-	if err != nil {
-		switch err {
-		case resource.ErrNotFound:
-			return ctx.SendStatus(http.StatusNotFound)
-		default:
-			controller.logger.Error("error finding resource", zap.Error(err))
-			return ctx.SendStatus(http.StatusInternalServerError)
-		}
+	switch err {
+	case nil:
+		return ctx.JSON(res)
+	case resource.ErrNotFound:
+		return ctx.SendStatus(http.StatusNotFound)
+	default:
+		controller.logger.Error("error finding resource", zap.Error(err))
+		return ctx.SendStatus(http.StatusInternalServerError)
 	}
-
-	return ctx.JSON(res)
 }
 
 func (controller *Controller) Delete(ctx *fiber.Ctx) error {
