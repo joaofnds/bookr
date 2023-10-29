@@ -20,6 +20,7 @@ type Driver struct {
 	User     *UserDriver
 	Resource *ResourceDriver
 	Calendar *CalendarDriver
+	Event    *EventDriver
 }
 
 func NewDriver(url string) *Driver {
@@ -28,6 +29,7 @@ func NewDriver(url string) *Driver {
 		User:     NewUserDriver(url),
 		Resource: NewResourceDriver(url),
 		Calendar: NewCalendarDriver(url),
+		Event:    NewEventDriver(url),
 	}
 }
 
@@ -66,6 +68,14 @@ func makeJSONRequest(p params) error {
 	}
 
 	return json.Unmarshal(b, p.into)
+}
+
+func jsonReader(m any) io.Reader {
+	b, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	return bytes.NewReader(b)
 }
 
 type RequestFailure struct {

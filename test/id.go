@@ -24,6 +24,10 @@ func (service *TestIDService) New() string {
 	return id
 }
 
+func (service *TestIDService) Last() string {
+	return service.Generated[len(service.Generated)-1]
+}
+
 func (service *TestIDService) Reset() {
 	clear(service.Generated)
 }

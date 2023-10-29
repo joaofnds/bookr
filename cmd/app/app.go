@@ -14,6 +14,7 @@ import (
 	"app/adapter/redis"
 	"app/adapter/tracing"
 	"app/adapter/validation"
+	calevent "app/calendar/event/module"
 	calendar "app/calendar/module"
 	"app/config"
 	"app/kv"
@@ -45,5 +46,6 @@ func main() {
 		kv.Module,
 		resource.Module,
 		calendar.Module,
+		calevent.Module,
 	).Run()
 }
