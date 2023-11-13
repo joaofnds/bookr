@@ -39,6 +39,10 @@ func (service *Service) Create(ctx context.Context, dto CreateEventDTO) (Event, 
 	return evt, service.repository.Create(ctx, evt)
 }
 
+func (service *Service) FindByID(ctx context.Context, id string) (Event, error) {
+	return service.repository.FindByID(ctx, id)
+}
+
 func (service *Service) FindByCalendarID(ctx context.Context, id string) ([]Event, error) {
 	return service.repository.FindByCalendarID(ctx, id)
 }

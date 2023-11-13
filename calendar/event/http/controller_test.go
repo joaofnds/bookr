@@ -113,6 +113,20 @@ var _ = Describe("/events", Ordered, func() {
 		Expect(evt.UpdatedAt).To(Equal(clockService.Now()))
 	})
 
+	It("finds event by id", func() {
+		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			Name:        "event",
+			Description: "event description",
+			Status:      event.Available,
+			StartsAt:    clockService.Now().Add(1 * time.Hour),
+			EndsAt:      clockService.Now().Add(2 * time.Hour),
+		}))
+
+		found, err := app.Event.FindByID(evt.CalendarID, evt.ID)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(found).To(Equal(evt))
+	})
+
 	It("finds event by calendar id", func() {
 		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
 			Name:        "event",

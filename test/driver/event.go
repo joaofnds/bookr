@@ -33,6 +33,18 @@ func (d *EventDriver) Create(calendarID string, dto eventhttp.CreateEventBody) (
 	})
 }
 
+func (d *EventDriver) FindByID(calendarID string, eventID string) (event.Event, error) {
+	var evt event.Event
+
+	return evt, makeJSONRequest(params{
+		into:   &evt,
+		status: http.StatusOK,
+		req: func() (*http.Response, error) {
+			return req.Get(d.url+"/calendar/"+calendarID+"/events/"+eventID, nil)
+		},
+	})
+}
+
 func (d *EventDriver) FindByCalendarID(calendarID string) ([]event.Event, error) {
 	var e []event.Event
 

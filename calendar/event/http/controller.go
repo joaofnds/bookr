@@ -34,6 +34,7 @@ func (controller *Controller) Register(app *fiber.App) {
 	events.Post("/", controller.create)
 
 	event := events.Group("/:eventID")
+	event.Get("/", controller.findByID)
 	event.Delete("/", controller.delete)
 }
 
@@ -73,6 +74,16 @@ func (controller *Controller) findByCalendarID(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(events)
+}
+
+func (controller *Controller) findByID(ctx *fiber.Ctx) error {
+	event, err := controller.service.FindByID(ctx.Context(), ctx.Params("eventID"))
+	if err != nil {
+		controller.logger.Error("failed to find event by id", zap.Error(err))
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	return ctx.JSON(event)
 }
 
 func (controller *Controller) delete(ctx *fiber.Ctx) error {

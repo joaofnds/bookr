@@ -22,9 +22,14 @@ func (repository *PostgresRepository) Create(ctx context.Context, event event.Ev
 	return gormErr(repository.db.WithContext(ctx).Create(&event))
 }
 
+func (repository *PostgresRepository) FindByID(ctx context.Context, id string) (event.Event, error) {
+	var evt event.Event
+	return evt, gormErr(repository.db.WithContext(ctx).First(&evt, "id = ?", id))
+}
+
 func (repository *PostgresRepository) FindByCalendarID(ctx context.Context, calendarID string) ([]event.Event, error) {
-	var event []event.Event
-	return event, gormErr(repository.db.WithContext(ctx).Find(&event, "calendar_id = ?", calendarID))
+	var events []event.Event
+	return events, gormErr(repository.db.WithContext(ctx).Find(&events, "calendar_id = ?", calendarID))
 }
 
 func (repository *PostgresRepository) Delete(ctx context.Context, id string) error {
