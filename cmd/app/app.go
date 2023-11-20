@@ -14,6 +14,7 @@ import (
 	"app/adapter/redis"
 	"app/adapter/tracing"
 	"app/adapter/validation"
+	booking "app/booking/module"
 	calevent "app/calendar/event/module"
 	calendar "app/calendar/module"
 	"app/config"
@@ -47,5 +48,6 @@ func main() {
 		resource.Module,
 		calendar.Module,
 		calevent.Module,
+		booking.Module,
 	).Run()
 }

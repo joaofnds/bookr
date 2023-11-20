@@ -55,8 +55,8 @@ func (controller *Controller) create(ctx *fiber.Ctx) error {
 		Name:        body.Name,
 		Description: body.Description,
 		Status:      body.Status,
-		StartsAt:    body.StartsAt,
-		EndsAt:      body.EndsAt,
+		StartsAt:    body.StartsAt.UTC(),
+		EndsAt:      body.EndsAt.UTC(),
 	})
 	if err != nil {
 		controller.logger.Error("failed to create event", zap.Error(err))

@@ -1,0 +1,308 @@
+package http_test
+
+import (
+	apphttp "app/adapter/http"
+	"app/adapter/logger"
+	"app/adapter/postgres"
+	"app/adapter/validation"
+	bookinghttp "app/booking/http"
+	bookingmodule "app/booking/module"
+	"app/calendar/event"
+	eventhttp "app/calendar/event/http"
+	eventmodule "app/calendar/event/module"
+	calendarhttp "app/calendar/http"
+	calendarmodule "app/calendar/module"
+	"app/config"
+	"app/resource"
+	resourcehttp "app/resource/http"
+	resourcemodule "app/resource/module"
+	"app/test"
+	"app/test/driver"
+	. "app/test/matchers"
+	"net/http"
+	"testing"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxtest"
+)
+
+func TestBookingHTTP(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "booking http suite")
+}
+
+var _ = Describe("/booking", Ordered, func() {
+	var (
+		app   *driver.Driver
+		fxApp *fxtest.App
+	)
+
+	BeforeAll(func() {
+		fxApp = fxtest.New(
+			GinkgoT(),
+			logger.NopLoggerProvider,
+			test.Transaction,
+			test.AvailablePortProvider,
+			test.TestIDProvider,
+			test.TestClockProvider,
+
+			driver.DriverProvider,
+
+			config.Module,
+			apphttp.FiberModule,
+			validation.Module,
+			postgres.Module,
+
+			bookingmodule.Module,
+			calendarmodule.Module,
+			eventmodule.Module,
+			resourcemodule.Module,
+			fx.Invoke(func(
+				app *fiber.App,
+				bookingcontroller *bookinghttp.Controller,
+				calcontroller *calendarhttp.Controller,
+				eventController *eventhttp.Controller,
+				resourceController *resourcehttp.Controller,
+			) {
+				bookingcontroller.Register(app)
+				calcontroller.Register(app)
+				eventController.Register(app)
+				resourceController.Register(app)
+			}),
+			fx.Populate(&app),
+		).RequireStart()
+	})
+
+	AfterAll(func() { fxApp.RequireStop() })
+
+	It("books on top of an available event", func() {
+		Must((func() error { return nil }()))
+		Expect(nil).To(BeNil())
+
+		res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+		cal := Must2(app.Calendar.Create(res.ID))
+		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			Name:        "event",
+			Description: "event description",
+			Status:      event.Available,
+			StartsAt:    time.Now().Add(1 * time.Hour),
+			EndsAt:      time.Now().Add(2 * time.Hour),
+		}))
+
+		err := app.Booking.Book(bookinghttp.BookingRequestPayload{
+			Name:            "test-event-name",
+			ResourceID:      res.ID,
+			CalendarID:      cal.ID,
+			CalendarEventID: evt.ID,
+			StartsAt:        evt.StartsAt,
+			EndsAt:          evt.EndsAt,
+		})
+
+		Expect(err).To(BeNil())
+	})
+
+	When("booking on top of a booked event", func() {
+		It("returns an error", func() {
+			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+			cal := Must2(app.Calendar.Create(res.ID))
+			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+				Name:        "event",
+				Description: "event description",
+				Status:      event.Booked,
+				StartsAt:    time.Now().Add(1 * time.Hour),
+				EndsAt:      time.Now().Add(2 * time.Hour),
+			}))
+
+			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
+				Name:            "test-event-name",
+				ResourceID:      res.ID,
+				CalendarID:      cal.ID,
+				CalendarEventID: evt.ID,
+				StartsAt:        evt.StartsAt,
+				EndsAt:          evt.EndsAt,
+			})
+
+			Expect(err).To(MatchError(driver.RequestFailure{
+				Status: http.StatusBadRequest,
+				Body:   `{"error":"booking error: event is not available"}`,
+			}))
+		})
+	})
+
+	When("start is after end", func() {
+		It("returns an error", func() {
+			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+			cal := Must2(app.Calendar.Create(res.ID))
+			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+				Name:        "event",
+				Description: "event description",
+				Status:      event.Available,
+				StartsAt:    time.Now().Add(1 * time.Hour),
+				EndsAt:      time.Now().Add(2 * time.Hour),
+			}))
+
+			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
+				Name:            "test-event-name",
+				ResourceID:      res.ID,
+				CalendarID:      cal.ID,
+				CalendarEventID: evt.ID,
+				StartsAt:        evt.EndsAt,
+				EndsAt:          evt.StartsAt,
+			})
+
+			Expect(err).To(MatchError(driver.RequestFailure{
+				Status: http.StatusBadRequest,
+				Body:   `{"error":"booking error: starts at must be before ends at"}`,
+			}))
+		})
+	})
+
+	When("start is equal to end", func() {
+		It("returns an error", func() {
+			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+			cal := Must2(app.Calendar.Create(res.ID))
+			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+				Name:        "event",
+				Description: "event description",
+				Status:      event.Available,
+				StartsAt:    time.Now().Add(1 * time.Hour),
+				EndsAt:      time.Now().Add(2 * time.Hour),
+			}))
+
+			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
+				Name:            "test-event-name",
+				ResourceID:      res.ID,
+				CalendarID:      cal.ID,
+				CalendarEventID: evt.ID,
+				StartsAt:        evt.StartsAt,
+				EndsAt:          evt.StartsAt,
+			})
+
+			Expect(err).To(MatchError(driver.RequestFailure{
+				Status: http.StatusBadRequest,
+				Body:   `{"error":"booking error: starts at must be before ends at"}`,
+			}))
+		})
+	})
+
+	When("start is in the past", func() {
+		It("returns an error", func() {
+			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+			cal := Must2(app.Calendar.Create(res.ID))
+			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+				Name:        "event",
+				Description: "event description",
+				Status:      event.Available,
+				StartsAt:    time.Now().Add(1 * time.Hour),
+				EndsAt:      time.Now().Add(2 * time.Hour),
+			}))
+
+			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
+				Name:            "test-event-name",
+				ResourceID:      res.ID,
+				CalendarID:      cal.ID,
+				CalendarEventID: evt.ID,
+				StartsAt:        evt.StartsAt.Add(-1 * time.Hour),
+				EndsAt:          evt.EndsAt,
+			})
+
+			Expect(err).To(MatchError(driver.RequestFailure{
+				Status: http.StatusBadRequest,
+				Body:   `{"error":"booking error: starts at must be in the future"}`,
+			}))
+		})
+	})
+
+	When("start is before event start", func() {
+		It("returns an error", func() {
+			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+			cal := Must2(app.Calendar.Create(res.ID))
+			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+				Name:        "event",
+				Description: "event description",
+				Status:      event.Available,
+				StartsAt:    time.Now().Add(1 * time.Hour),
+				EndsAt:      time.Now().Add(2 * time.Hour),
+			}))
+
+			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
+				Name:            "test-event-name",
+				ResourceID:      res.ID,
+				CalendarID:      cal.ID,
+				CalendarEventID: evt.ID,
+				StartsAt:        evt.StartsAt.Add(-5 * time.Minute),
+				EndsAt:          evt.EndsAt,
+			})
+
+			Expect(err).To(MatchError(driver.RequestFailure{
+				Status: http.StatusBadRequest,
+				Body:   `{"error":"booking error: request is not within event time"}`,
+			}))
+		})
+	})
+
+	When("end is after event end", func() {
+		It("returns an error", func() {
+			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+			cal := Must2(app.Calendar.Create(res.ID))
+			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+				Name:        "event",
+				Description: "event description",
+				Status:      event.Available,
+				StartsAt:    time.Now().Add(1 * time.Hour),
+				EndsAt:      time.Now().Add(2 * time.Hour),
+			}))
+
+			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
+				Name:            "test-event-name",
+				ResourceID:      res.ID,
+				CalendarID:      cal.ID,
+				CalendarEventID: evt.ID,
+				StartsAt:        evt.StartsAt,
+				EndsAt:          evt.EndsAt.Add(5 * time.Minute),
+			})
+
+			Expect(err).To(MatchError(driver.RequestFailure{
+				Status: http.StatusBadRequest,
+				Body:   `{"error":"booking error: request is not within event time"}`,
+			}))
+		})
+	})
+
+	It("updates the event", func() {
+		res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+		cal := Must2(app.Calendar.Create(res.ID))
+		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			Name:        "event",
+			Description: "event description",
+			Status:      event.Available,
+			StartsAt:    time.Now().Add(1 * time.Hour),
+			EndsAt:      time.Now().Add(2 * time.Hour),
+		}))
+
+		bookingRequest := bookinghttp.BookingRequestPayload{
+			Name:            "test-event-name",
+			Description:     "test event description",
+			ResourceID:      res.ID,
+			CalendarID:      cal.ID,
+			CalendarEventID: evt.ID,
+			StartsAt:        evt.StartsAt,
+			EndsAt:          evt.EndsAt,
+		}
+		err := app.Booking.Book(bookingRequest)
+
+		Expect(err).To(BeNil())
+
+		events := Must2(app.Event.FindByCalendarID(cal.ID))
+		Expect(events).To(HaveLen(1))
+		Expect(events[0].Status).To(Equal(event.Booked))
+		Expect(events[0].Name).To(Equal(bookingRequest.Name))
+		Expect(events[0].Description).To(Equal(bookingRequest.Description))
+		Expect(events[0].StartsAt).To(Equal(evt.StartsAt))
+		Expect(events[0].EndsAt).To(Equal(evt.EndsAt))
+	})
+})
