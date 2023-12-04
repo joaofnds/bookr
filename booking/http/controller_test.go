@@ -80,9 +80,6 @@ var _ = Describe("/booking", Ordered, func() {
 	AfterAll(func() { fxApp.RequireStop() })
 
 	It("books on top of an available event", func() {
-		Must((func() error { return nil }()))
-		Expect(nil).To(BeNil())
-
 		res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
 		cal := Must2(app.Calendar.Create(res.ID))
 		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
