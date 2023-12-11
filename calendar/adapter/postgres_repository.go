@@ -28,7 +28,7 @@ func (repository *PostgresRepository) FindByID(ctx context.Context, id string) (
 }
 
 func (repository *PostgresRepository) DeleteAll(ctx context.Context) error {
-	return gormErr(repository.db.WithContext(ctx).Delete(&calendar.Calendar{}))
+	return gormErr(repository.db.WithContext(ctx).Exec("DELETE FROM calendars"))
 }
 
 func gormErr(result *gorm.DB) error {

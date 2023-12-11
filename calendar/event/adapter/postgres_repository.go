@@ -37,7 +37,7 @@ func (repository *PostgresRepository) Delete(ctx context.Context, id string) err
 }
 
 func (repository *PostgresRepository) DeleteAll(ctx context.Context) error {
-	return gormErr(repository.db.WithContext(ctx).Delete(&event.Event{}))
+	return gormErr(repository.db.WithContext(ctx).Exec("DELETE FROM calendar_events"))
 }
 
 func gormErr(result *gorm.DB) error {
