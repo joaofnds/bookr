@@ -13,6 +13,7 @@ import (
 	calendarhttp "app/calendar/http"
 	calendarmodule "app/calendar/module"
 	"app/config"
+	"app/internal"
 	"app/resource"
 	resourcehttp "app/resource/http"
 	resourcemodule "app/resource/module"
@@ -39,6 +40,7 @@ var _ = Describe("/booking", Ordered, func() {
 	var (
 		app   *driver.Driver
 		fxApp *fxtest.App
+		clock internal.ClockService
 	)
 
 	BeforeAll(func() {
@@ -73,7 +75,7 @@ var _ = Describe("/booking", Ordered, func() {
 				eventController.Register(app)
 				resourceController.Register(app)
 			}),
-			fx.Populate(&app),
+			fx.Populate(&app, &clock),
 		).RequireStart()
 	})
 
@@ -86,8 +88,8 @@ var _ = Describe("/booking", Ordered, func() {
 			Name:        "event",
 			Description: "event description",
 			Status:      event.Available,
-			StartsAt:    time.Now().Add(1 * time.Hour),
-			EndsAt:      time.Now().Add(2 * time.Hour),
+			StartsAt:    clock.Now().Add(1 * time.Hour),
+			EndsAt:      clock.Now().Add(2 * time.Hour),
 		}))
 
 		err := app.Booking.Book(bookinghttp.BookingRequestPayload{
@@ -110,8 +112,8 @@ var _ = Describe("/booking", Ordered, func() {
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Booked,
-				StartsAt:    time.Now().Add(1 * time.Hour),
-				EndsAt:      time.Now().Add(2 * time.Hour),
+				StartsAt:    clock.Now().Add(1 * time.Hour),
+				EndsAt:      clock.Now().Add(2 * time.Hour),
 			}))
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
@@ -138,8 +140,8 @@ var _ = Describe("/booking", Ordered, func() {
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
-				StartsAt:    time.Now().Add(1 * time.Hour),
-				EndsAt:      time.Now().Add(2 * time.Hour),
+				StartsAt:    clock.Now().Add(1 * time.Hour),
+				EndsAt:      clock.Now().Add(2 * time.Hour),
 			}))
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
@@ -166,8 +168,8 @@ var _ = Describe("/booking", Ordered, func() {
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
-				StartsAt:    time.Now().Add(1 * time.Hour),
-				EndsAt:      time.Now().Add(2 * time.Hour),
+				StartsAt:    clock.Now().Add(1 * time.Hour),
+				EndsAt:      clock.Now().Add(2 * time.Hour),
 			}))
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
@@ -194,8 +196,8 @@ var _ = Describe("/booking", Ordered, func() {
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
-				StartsAt:    time.Now().Add(1 * time.Hour),
-				EndsAt:      time.Now().Add(2 * time.Hour),
+				StartsAt:    clock.Now().Add(1 * time.Hour),
+				EndsAt:      clock.Now().Add(2 * time.Hour),
 			}))
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
@@ -203,7 +205,7 @@ var _ = Describe("/booking", Ordered, func() {
 				ResourceID:      res.ID,
 				CalendarID:      cal.ID,
 				CalendarEventID: evt.ID,
-				StartsAt:        evt.StartsAt.Add(-1 * time.Hour),
+				StartsAt:        evt.StartsAt.Add(-2 * time.Hour),
 				EndsAt:          evt.EndsAt,
 			})
 
@@ -222,8 +224,8 @@ var _ = Describe("/booking", Ordered, func() {
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
-				StartsAt:    time.Now().Add(1 * time.Hour),
-				EndsAt:      time.Now().Add(2 * time.Hour),
+				StartsAt:    clock.Now().Add(1 * time.Hour),
+				EndsAt:      clock.Now().Add(2 * time.Hour),
 			}))
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
@@ -250,8 +252,8 @@ var _ = Describe("/booking", Ordered, func() {
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
-				StartsAt:    time.Now().Add(1 * time.Hour),
-				EndsAt:      time.Now().Add(2 * time.Hour),
+				StartsAt:    clock.Now().Add(1 * time.Hour),
+				EndsAt:      clock.Now().Add(2 * time.Hour),
 			}))
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
@@ -277,8 +279,8 @@ var _ = Describe("/booking", Ordered, func() {
 			Name:        "event",
 			Description: "event description",
 			Status:      event.Available,
-			StartsAt:    time.Now().Add(1 * time.Hour),
-			EndsAt:      time.Now().Add(2 * time.Hour),
+			StartsAt:    clock.Now().Add(1 * time.Hour),
+			EndsAt:      clock.Now().Add(2 * time.Hour),
 		}))
 
 		bookingRequest := bookinghttp.BookingRequestPayload{

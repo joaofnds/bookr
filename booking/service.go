@@ -3,23 +3,26 @@ package booking
 import (
 	"app/calendar"
 	"app/calendar/event"
+	"app/internal"
 	"app/resource"
 	"context"
-	"time"
 )
 
 type Service struct {
+	clock    internal.ClockService
 	resource *resource.Service
 	calendar *calendar.Service
 	event    *event.Service
 }
 
 func NewService(
+	clock internal.ClockService,
 	resource *resource.Service,
 	calendar *calendar.Service,
 	event *event.Service,
 ) *Service {
 	return &Service{
+		clock:    clock,
 		resource: resource,
 		calendar: calendar,
 		event:    event,
@@ -27,7 +30,7 @@ func NewService(
 }
 
 func (service *Service) Book(ctx context.Context, request Request) error {
-	if err := validateBookingRequest(request); err != nil {
+	if err := service.validateBookingRequest(request); err != nil {
 		return err
 	}
 
@@ -71,7 +74,7 @@ func (service *Service) Book(ctx context.Context, request Request) error {
 	return err
 }
 
-func validateBookingRequest(request Request) error {
+func (service *Service) validateBookingRequest(request Request) error {
 	if request.ResourceID == "" {
 		return ErrMissingResourceID
 	}
@@ -100,7 +103,7 @@ func validateBookingRequest(request Request) error {
 		return ErrStartEqualEnd
 	}
 
-	if request.StartsAt.Before(time.Now()) {
+	if request.StartsAt.Before(service.clock.Now()) {
 		return ErrStartAfterNow
 	}
 
