@@ -15,7 +15,7 @@ type PostgresRepository struct {
 }
 
 func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
-	return &PostgresRepository{db}
+	return &PostgresRepository{db: db.Table("resources")}
 }
 
 func (repository *PostgresRepository) Create(ctx context.Context, resource resource.Resource) (resource.Resource, error) {

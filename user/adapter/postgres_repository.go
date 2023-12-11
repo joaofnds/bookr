@@ -13,7 +13,7 @@ type PostgresRepository struct {
 }
 
 func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
-	return &PostgresRepository{db}
+	return &PostgresRepository{db: db.Table("users")}
 }
 
 func (repository *PostgresRepository) CreateUser(ctx context.Context, newUser user.User) error {
