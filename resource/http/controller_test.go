@@ -32,11 +32,11 @@ func TestResourceHTTP(t *testing.T) {
 
 var _ = Describe("/resources", Ordered, func() {
 	var (
-		app          *driver.Driver
-		fxApp        *fxtest.App
-		service      *resource.Service
-		idService    *test.TestIDService
-		clockService *test.TestClockService
+		app             *driver.Driver
+		fxApp           *fxtest.App
+		resourceService *resource.Service
+		idService       *test.TestIDService
+		clockService    *test.TestClockService
 	)
 
 	BeforeAll(func() {
@@ -56,13 +56,13 @@ var _ = Describe("/resources", Ordered, func() {
 			fx.Invoke(func(app *fiber.App, controller *resourcehttp.Controller) {
 				controller.Register(app)
 			}),
-			fx.Populate(&service, &app, &idService, &clockService),
+			fx.Populate(&resourceService, &app, &idService, &clockService),
 		).RequireStart()
 	})
 
 	BeforeEach(func() {
 		idService.Reset()
-		Must(service.DeleteAll(context.Background()))
+		Must(resourceService.DeleteAll(context.Background()))
 	})
 
 	AfterAll(func() { fxApp.RequireStop() })

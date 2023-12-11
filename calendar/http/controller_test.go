@@ -37,7 +37,7 @@ var _ = Describe("/resources", Ordered, func() {
 	var (
 		app             *driver.Driver
 		fxApp           *fxtest.App
-		service         *calendar.Service
+		calendarService *calendar.Service
 		resourceService *resource.Service
 		idService       *test.TestIDService
 		clockService    *test.TestClockService
@@ -64,14 +64,14 @@ var _ = Describe("/resources", Ordered, func() {
 				resourceController.Register(app)
 				calcontroller.Register(app)
 			}),
-			fx.Populate(&service, &resourceService, &app, &idService, &clockService),
+			fx.Populate(&calendarService, &resourceService, &app, &idService, &clockService),
 		).RequireStart()
 	})
 
 	BeforeEach(func() {
 		idService.Reset()
-		service.DeleteAll(context.Background())
-		resourceService.DeleteAll(context.Background())
+		Must(calendarService.DeleteAll(context.Background()))
+		Must(resourceService.DeleteAll(context.Background()))
 	})
 
 	AfterAll(func() { fxApp.RequireStop() })

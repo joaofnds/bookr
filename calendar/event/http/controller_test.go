@@ -38,7 +38,7 @@ var _ = Describe("/events", Ordered, func() {
 	var (
 		app             *driver.Driver
 		fxApp           *fxtest.App
-		service         *calendar.Service
+		calendarService *calendar.Service
 		resourceService *resource.Service
 		idService       *test.TestIDService
 		clockService    *test.TestClockService
@@ -77,14 +77,14 @@ var _ = Describe("/events", Ordered, func() {
 				eventController.Register(app)
 			}),
 
-			fx.Populate(&service, &resourceService, &app, &idService, &clockService),
+			fx.Populate(&calendarService, &resourceService, &app, &idService, &clockService),
 		).RequireStart()
 	})
 
 	BeforeEach(func() {
 		idService.Reset()
-		service.DeleteAll(context.Background())
-		resourceService.DeleteAll(context.Background())
+		Must(calendarService.DeleteAll(context.Background()))
+		Must(resourceService.DeleteAll(context.Background()))
 
 		desk = Must2(app.Resource.Create(resource.CreateResourceDTO{}))
 		cal = Must2(app.Calendar.Create(desk.ID))
