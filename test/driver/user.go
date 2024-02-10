@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"app/test/matchers"
 	"app/test/req"
 	"app/user"
 
@@ -13,11 +14,11 @@ type UserDriver struct {
 	url string
 }
 
-func NewUserDriver(baseURL string) *UserDriver {
-	return &UserDriver{baseURL}
+func NewUserDriver(baseURL string) UserDriver {
+	return UserDriver{baseURL}
 }
 
-func (d *UserDriver) CreateUser(name string) (user.User, error) {
+func (driver UserDriver) CreateUser(name string) (user.User, error) {
 	var u user.User
 
 	return u, makeJSONRequest(params{
@@ -25,7 +26,7 @@ func (d *UserDriver) CreateUser(name string) (user.User, error) {
 		status: http.StatusCreated,
 		req: func() (*http.Response, error) {
 			return req.Post(
-				d.url+"/users",
+				driver.url+"/users",
 				map[string]string{"Content-Type": "application/json"},
 				strings.NewReader(fmt.Sprintf(`{"name":%q}`, name)),
 			)
@@ -33,7 +34,11 @@ func (d *UserDriver) CreateUser(name string) (user.User, error) {
 	})
 }
 
-func (d *UserDriver) GetUser(name string) (user.User, error) {
+func (driver UserDriver) MustCreateUser(name string) user.User {
+	return matchers.Must2(driver.CreateUser(name))
+}
+
+func (driver UserDriver) GetUser(name string) (user.User, error) {
 	var u user.User
 
 	return u, makeJSONRequest(params{
@@ -41,40 +46,52 @@ func (d *UserDriver) GetUser(name string) (user.User, error) {
 		status: http.StatusOK,
 		req: func() (*http.Response, error) {
 			return req.Get(
-				d.url+"/users/"+name,
+				driver.url+"/users/"+name,
 				map[string]string{"Accept": "application/json"},
 			)
 		},
 	})
 }
 
-func (d *UserDriver) ListUsers() ([]user.User, error) {
+func (driver UserDriver) MustGetUser(name string) user.User {
+	return matchers.Must2(driver.GetUser(name))
+}
+
+func (driver UserDriver) ListUsers() ([]user.User, error) {
 	var users []user.User
 	return users, makeJSONRequest(params{
 		into:   &users,
 		status: http.StatusOK,
 		req: func() (*http.Response, error) {
 			return req.Get(
-				d.url+"/users",
+				driver.url+"/users",
 				map[string]string{"Accept": "application/json"},
 			)
 		},
 	})
 }
 
-func (d *UserDriver) DeleteUser(name string) error {
+func (driver UserDriver) MustListUsers() []user.User {
+	return matchers.Must2(driver.ListUsers())
+}
+
+func (driver UserDriver) DeleteUser(name string) error {
 	return makeJSONRequest(params{
 		status: http.StatusOK,
 		req: func() (*http.Response, error) {
 			return req.Delete(
-				d.url+"/users/"+name,
+				driver.url+"/users/"+name,
 				map[string]string{"Accept": "application/json"},
 			)
 		},
 	})
 }
 
-func (d *UserDriver) GetFeature(name string) (map[string]any, error) {
+func (driver UserDriver) MustDeleteUser(name string) {
+	matchers.Must(driver.DeleteUser(name))
+}
+
+func (driver UserDriver) GetFeature(name string) (map[string]any, error) {
 	var features map[string]any
 
 	return features, makeJSONRequest(params{
@@ -82,9 +99,13 @@ func (d *UserDriver) GetFeature(name string) (map[string]any, error) {
 		status: http.StatusOK,
 		req: func() (*http.Response, error) {
 			return req.Get(
-				d.url+"/users/"+name+"/feature",
+				driver.url+"/users/"+name+"/feature",
 				map[string]string{"Accept": "application/json"},
 			)
 		},
 	})
+}
+
+func (driver UserDriver) MustGetFeature(name string) map[string]any {
+	return matchers.Must2(driver.GetFeature(name))
 }

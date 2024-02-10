@@ -2,6 +2,7 @@ package driver
 
 import (
 	"app/resource"
+	"app/test/matchers"
 	"app/test/req"
 	"net/http"
 )
@@ -10,8 +11,8 @@ type ResourceDriver struct {
 	url string
 }
 
-func NewResourceDriver(url string) *ResourceDriver {
-	return &ResourceDriver{url: url}
+func NewResourceDriver(url string) ResourceDriver {
+	return ResourceDriver{url: url}
 }
 
 func (driver ResourceDriver) All() ([]resource.Resource, error) {
@@ -26,6 +27,10 @@ func (driver ResourceDriver) All() ([]resource.Resource, error) {
 			)
 		},
 	})
+}
+
+func (driver ResourceDriver) MustAll() []resource.Resource {
+	return matchers.Must2(driver.All())
 }
 
 func (driver ResourceDriver) Create(dto resource.CreateResourceDTO) (resource.Resource, error) {
@@ -47,6 +52,10 @@ func (driver ResourceDriver) Create(dto resource.CreateResourceDTO) (resource.Re
 	})
 }
 
+func (driver ResourceDriver) MustCreate(dto resource.CreateResourceDTO) resource.Resource {
+	return matchers.Must2(driver.Create(dto))
+}
+
 func (driver ResourceDriver) FindByID(id string) (resource.Resource, error) {
 	var found resource.Resource
 	return found, makeJSONRequest(params{
@@ -61,6 +70,10 @@ func (driver ResourceDriver) FindByID(id string) (resource.Resource, error) {
 	})
 }
 
+func (driver ResourceDriver) MustFindByID(id string) resource.Resource {
+	return matchers.Must2(driver.FindByID(id))
+}
+
 func (driver ResourceDriver) Delete(id string) error {
 	return makeJSONRequest(params{
 		status: http.StatusOK,
@@ -68,4 +81,8 @@ func (driver ResourceDriver) Delete(id string) error {
 			return req.Delete(driver.url+"/resources/"+id, nil)
 		},
 	})
+}
+
+func (driver ResourceDriver) MustDelete(id string) {
+	matchers.Must(driver.Delete(id))
 }

@@ -15,7 +15,7 @@ import (
 	resourcemodule "app/resource/module"
 	"app/test"
 	"app/test/driver"
-	. "app/test/matchers"
+	"app/test/matchers"
 
 	"github.com/gofiber/fiber/v2"
 	. "github.com/onsi/ginkgo/v2"
@@ -62,17 +62,17 @@ var _ = Describe("/resources", Ordered, func() {
 
 	BeforeEach(func() {
 		idService.Reset()
-		Must(resourceService.DeleteAll(context.Background()))
+		matchers.Must(resourceService.DeleteAll(context.Background()))
 	})
 
 	AfterAll(func() { fxApp.RequireStop() })
 
 	It("creates a resource", func() {
-		first := Must2(app.Resource.Create(resource.CreateResourceDTO{
+		first := app.Resource.MustCreate(resource.CreateResourceDTO{
 			OwnID:   "first",
 			Setup:   10 * time.Minute,
 			Cleanup: 15 * time.Minute,
-		}))
+		})
 
 		Expect(first.ID).To(Equal(idService.Generated[0]))
 		Expect(first.OwnID).To(Equal("first"))
@@ -83,28 +83,28 @@ var _ = Describe("/resources", Ordered, func() {
 	})
 
 	It("lists resources", func() {
-		first := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-		second := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+		first := app.Resource.MustCreate(resource.CreateResourceDTO{})
+		second := app.Resource.MustCreate(resource.CreateResourceDTO{})
 
-		resources := Must2(app.Resource.All())
+		resources := app.Resource.MustAll()
 		Expect(resources).To(Equal([]resource.Resource{first, second}))
 	})
 
 	It("finds a resource by id", func() {
-		first := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-		second := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+		first := app.Resource.MustCreate(resource.CreateResourceDTO{})
+		second := app.Resource.MustCreate(resource.CreateResourceDTO{})
 
-		Expect(Must2(app.Resource.FindByID(first.ID))).To(Equal(first))
-		Expect(Must2(app.Resource.FindByID(second.ID))).To(Equal(second))
+		Expect(app.Resource.MustFindByID(first.ID)).To(Equal(first))
+		Expect(app.Resource.MustFindByID(second.ID)).To(Equal(second))
 	})
 
 	It("deletes a resource", func() {
-		first := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-		second := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
+		first := app.Resource.MustCreate(resource.CreateResourceDTO{})
+		second := app.Resource.MustCreate(resource.CreateResourceDTO{})
 
-		Must(app.Resource.Delete(first.ID))
+		app.Resource.MustDelete(first.ID)
 
-		all := Must2(app.Resource.All())
+		all := app.Resource.MustAll()
 		Expect(all).To(Equal([]resource.Resource{second}))
 	})
 })

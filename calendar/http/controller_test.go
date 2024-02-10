@@ -18,7 +18,7 @@ import (
 	resourcemodule "app/resource/module"
 	"app/test"
 	"app/test/driver"
-	. "app/test/matchers"
+	"app/test/matchers"
 
 	"github.com/gofiber/fiber/v2"
 	. "github.com/onsi/ginkgo/v2"
@@ -70,21 +70,21 @@ var _ = Describe("/resources", Ordered, func() {
 
 	BeforeEach(func() {
 		idService.Reset()
-		Must(calendarService.DeleteAll(context.Background()))
-		Must(resourceService.DeleteAll(context.Background()))
+		matchers.Must(calendarService.DeleteAll(context.Background()))
+		matchers.Must(resourceService.DeleteAll(context.Background()))
 	})
 
 	AfterAll(func() { fxApp.RequireStop() })
 
 	It("creates a calendar", func() {
-		res := Must2(app.Resource.Create(resource.CreateResourceDTO{
+		res := app.Resource.MustCreate(resource.CreateResourceDTO{
 			OwnID:   "first",
 			Setup:   10 * time.Minute,
 			Cleanup: 15 * time.Minute,
-		}))
+		})
 		Expect(res.ID).To(Equal(idService.Generated[0]))
 
-		cal := Must2(app.Calendar.Create(res.ID))
+		cal := app.Calendar.MustCreate(res.ID)
 
 		Expect(cal.ID).To(Equal(idService.Generated[1]))
 		Expect(cal.ResourceID).To(Equal(res.ID))
@@ -93,9 +93,9 @@ var _ = Describe("/resources", Ordered, func() {
 	})
 
 	It("finds a resource by id", func() {
-		res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-		cal := Must2(app.Calendar.Create(res.ID))
+		res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+		cal := app.Calendar.MustCreate(res.ID)
 
-		Expect(Must2(app.Calendar.FindByID(cal.ID))).To(Equal(cal))
+		Expect(app.Calendar.MustFindByID(cal.ID)).To(Equal(cal))
 	})
 })

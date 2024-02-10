@@ -17,11 +17,11 @@ var DriverProvider = fx.Provide(func(config apphttp.Config) *Driver {
 
 type Driver struct {
 	URL      string
-	User     *UserDriver
-	Resource *ResourceDriver
-	Calendar *CalendarDriver
-	Event    *EventDriver
-	Booking  *BookingDriver
+	User     UserDriver
+	Resource ResourceDriver
+	Calendar CalendarDriver
+	Event    EventDriver
+	Booking  BookingDriver
 }
 
 func NewDriver(url string) *Driver {

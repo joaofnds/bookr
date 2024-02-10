@@ -17,7 +17,7 @@ import (
 	resourcemodule "app/resource/module"
 	"app/test"
 	"app/test/driver"
-	. "app/test/matchers"
+	"app/test/matchers"
 	"context"
 	"testing"
 	"time"
@@ -83,11 +83,11 @@ var _ = Describe("/events", Ordered, func() {
 
 	BeforeEach(func() {
 		idService.Reset()
-		Must(calendarService.DeleteAll(context.Background()))
-		Must(resourceService.DeleteAll(context.Background()))
+		matchers.Must(calendarService.DeleteAll(context.Background()))
+		matchers.Must(resourceService.DeleteAll(context.Background()))
 
-		desk = Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-		cal = Must2(app.Calendar.Create(desk.ID))
+		desk = app.Resource.MustCreate(resource.CreateResourceDTO{})
+		cal = app.Calendar.MustCreate(desk.ID)
 	})
 
 	AfterAll(func() { fxApp.RequireStop() })
@@ -114,13 +114,13 @@ var _ = Describe("/events", Ordered, func() {
 	})
 
 	It("finds event by id", func() {
-		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+		evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 			Name:        "event",
 			Description: "event description",
 			Status:      event.Available,
 			StartsAt:    clockService.Now().Add(1 * time.Hour),
 			EndsAt:      clockService.Now().Add(2 * time.Hour),
-		}))
+		})
 
 		found, err := app.Event.FindByID(evt.CalendarID, evt.ID)
 		Expect(err).ToNot(HaveOccurred())
@@ -128,13 +128,13 @@ var _ = Describe("/events", Ordered, func() {
 	})
 
 	It("finds event by calendar id", func() {
-		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+		evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 			Name:        "event",
 			Description: "event description",
 			Status:      event.Available,
 			StartsAt:    clockService.Now().Add(1 * time.Hour),
 			EndsAt:      clockService.Now().Add(2 * time.Hour),
-		}))
+		})
 
 		calEvents, err := app.Event.FindByCalendarID(cal.ID)
 		Expect(err).ToNot(HaveOccurred())
@@ -142,35 +142,35 @@ var _ = Describe("/events", Ordered, func() {
 	})
 
 	It("deletes an event", func() {
-		first := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+		first := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 			Name:        "first event",
 			Description: "first event description",
 			Status:      event.Available,
 			StartsAt:    clockService.Now().Add(1 * time.Hour),
 			EndsAt:      clockService.Now().Add(2 * time.Hour),
-		}))
-		second := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+		})
+		second := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 			Name:        "second event",
 			Description: "second event description",
 			Status:      event.Available,
 			StartsAt:    clockService.Now().Add(1 * time.Hour),
 			EndsAt:      clockService.Now().Add(2 * time.Hour),
-		}))
-		third := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+		})
+		third := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 			Name:        "third event",
 			Description: "third event description",
 			Status:      event.Available,
 			StartsAt:    clockService.Now().Add(1 * time.Hour),
 			EndsAt:      clockService.Now().Add(2 * time.Hour),
-		}))
+		})
 
-		Expect(Must2(app.Event.FindByCalendarID(cal.ID))).
+		Expect(app.Event.MustFindByCalendarID(cal.ID)).
 			To(Equal([]event.Event{first, second, third}))
 
 		err := app.Event.Delete(cal.ID, second.ID)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(Must2(app.Event.FindByCalendarID(cal.ID))).
+		Expect(app.Event.MustFindByCalendarID(cal.ID)).
 			To(Equal([]event.Event{first, third}))
 	})
 })

@@ -2,6 +2,7 @@ package driver
 
 import (
 	"app/calendar"
+	"app/test/matchers"
 	"app/test/req"
 	"net/http"
 )
@@ -10,8 +11,8 @@ type CalendarDriver struct {
 	url string
 }
 
-func NewCalendarDriver(url string) *CalendarDriver {
-	return &CalendarDriver{url: url}
+func NewCalendarDriver(url string) CalendarDriver {
+	return CalendarDriver{url: url}
 }
 
 func (driver CalendarDriver) Create(resourceID string) (calendar.Calendar, error) {
@@ -29,6 +30,10 @@ func (driver CalendarDriver) Create(resourceID string) (calendar.Calendar, error
 	})
 }
 
+func (driver CalendarDriver) MustCreate(resourceID string) calendar.Calendar {
+	return matchers.Must2(driver.Create(resourceID))
+}
+
 func (driver CalendarDriver) FindByID(id string) (calendar.Calendar, error) {
 	var found calendar.Calendar
 	return found, makeJSONRequest(params{
@@ -41,4 +46,8 @@ func (driver CalendarDriver) FindByID(id string) (calendar.Calendar, error) {
 			)
 		},
 	})
+}
+
+func (driver CalendarDriver) MustFindByID(id string) calendar.Calendar {
+	return matchers.Must2(driver.FindByID(id))
 }

@@ -19,7 +19,6 @@ import (
 	resourcemodule "app/resource/module"
 	"app/test"
 	"app/test/driver"
-	. "app/test/matchers"
 	"net/http"
 	"testing"
 	"time"
@@ -82,15 +81,15 @@ var _ = Describe("/booking", Ordered, func() {
 	AfterAll(func() { fxApp.RequireStop() })
 
 	It("books on top of an available event", func() {
-		res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-		cal := Must2(app.Calendar.Create(res.ID))
-		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+		res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+		cal := app.Calendar.MustCreate(res.ID)
+		evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 			Name:        "event",
 			Description: "event description",
 			Status:      event.Available,
 			StartsAt:    clock.Now().Add(1 * time.Hour),
 			EndsAt:      clock.Now().Add(2 * time.Hour),
-		}))
+		})
 
 		err := app.Booking.Book(bookinghttp.BookingRequestPayload{
 			Name:            "test-event-name",
@@ -106,15 +105,15 @@ var _ = Describe("/booking", Ordered, func() {
 
 	When("booking on top of a booked event", func() {
 		It("returns an error", func() {
-			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-			cal := Must2(app.Calendar.Create(res.ID))
-			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+			cal := app.Calendar.MustCreate(res.ID)
+			evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Booked,
 				StartsAt:    clock.Now().Add(1 * time.Hour),
 				EndsAt:      clock.Now().Add(2 * time.Hour),
-			}))
+			})
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
 				Name:            "test-event-name",
@@ -134,15 +133,15 @@ var _ = Describe("/booking", Ordered, func() {
 
 	When("start is after end", func() {
 		It("returns an error", func() {
-			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-			cal := Must2(app.Calendar.Create(res.ID))
-			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+			cal := app.Calendar.MustCreate(res.ID)
+			evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
 				StartsAt:    clock.Now().Add(1 * time.Hour),
 				EndsAt:      clock.Now().Add(2 * time.Hour),
-			}))
+			})
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
 				Name:            "test-event-name",
@@ -162,15 +161,15 @@ var _ = Describe("/booking", Ordered, func() {
 
 	When("start is equal to end", func() {
 		It("returns an error", func() {
-			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-			cal := Must2(app.Calendar.Create(res.ID))
-			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+			cal := app.Calendar.MustCreate(res.ID)
+			evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
 				StartsAt:    clock.Now().Add(1 * time.Hour),
 				EndsAt:      clock.Now().Add(2 * time.Hour),
-			}))
+			})
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
 				Name:            "test-event-name",
@@ -190,15 +189,15 @@ var _ = Describe("/booking", Ordered, func() {
 
 	When("start is in the past", func() {
 		It("returns an error", func() {
-			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-			cal := Must2(app.Calendar.Create(res.ID))
-			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+			cal := app.Calendar.MustCreate(res.ID)
+			evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
 				StartsAt:    clock.Now().Add(1 * time.Hour),
 				EndsAt:      clock.Now().Add(2 * time.Hour),
-			}))
+			})
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
 				Name:            "test-event-name",
@@ -218,15 +217,15 @@ var _ = Describe("/booking", Ordered, func() {
 
 	When("start is before event start", func() {
 		It("returns an error", func() {
-			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-			cal := Must2(app.Calendar.Create(res.ID))
-			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+			cal := app.Calendar.MustCreate(res.ID)
+			evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
 				StartsAt:    clock.Now().Add(1 * time.Hour),
 				EndsAt:      clock.Now().Add(2 * time.Hour),
-			}))
+			})
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
 				Name:            "test-event-name",
@@ -246,15 +245,15 @@ var _ = Describe("/booking", Ordered, func() {
 
 	When("end is after event end", func() {
 		It("returns an error", func() {
-			res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-			cal := Must2(app.Calendar.Create(res.ID))
-			evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+			res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+			cal := app.Calendar.MustCreate(res.ID)
+			evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 				Name:        "event",
 				Description: "event description",
 				Status:      event.Available,
 				StartsAt:    clock.Now().Add(1 * time.Hour),
 				EndsAt:      clock.Now().Add(2 * time.Hour),
-			}))
+			})
 
 			err := app.Booking.Book(bookinghttp.BookingRequestPayload{
 				Name:            "test-event-name",
@@ -273,15 +272,15 @@ var _ = Describe("/booking", Ordered, func() {
 	})
 
 	It("updates the event", func() {
-		res := Must2(app.Resource.Create(resource.CreateResourceDTO{}))
-		cal := Must2(app.Calendar.Create(res.ID))
-		evt := Must2(app.Event.Create(cal.ID, eventhttp.CreateEventBody{
+		res := app.Resource.MustCreate(resource.CreateResourceDTO{})
+		cal := app.Calendar.MustCreate(res.ID)
+		evt := app.Event.MustCreate(cal.ID, eventhttp.CreateEventBody{
 			Name:        "event",
 			Description: "event description",
 			Status:      event.Available,
 			StartsAt:    clock.Now().Add(1 * time.Hour),
 			EndsAt:      clock.Now().Add(2 * time.Hour),
-		}))
+		})
 
 		bookingRequest := bookinghttp.BookingRequestPayload{
 			Name:            "test-event-name",
@@ -296,7 +295,7 @@ var _ = Describe("/booking", Ordered, func() {
 
 		Expect(err).To(BeNil())
 
-		events := Must2(app.Event.FindByCalendarID(cal.ID))
+		events := app.Event.MustFindByCalendarID(cal.ID)
 		Expect(events).To(HaveLen(1))
 		Expect(events[0].Status).To(Equal(event.Booked))
 		Expect(events[0].Name).To(Equal(bookingRequest.Name))
